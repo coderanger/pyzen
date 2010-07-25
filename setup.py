@@ -2,21 +2,20 @@
 # -*- coding: iso-8859-1 -*-
 import os
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name = 'PyZen',
     version = '0.1',
-    packages = ['pyzen'],
-    package_data = { 'pyzen': [] },
+    packages = find_packages(),
 
     author = 'Noah Kantrowitz',
     author_email = 'noah@coderanger.net',
     description = 'Continuous testing for paranoid developers.',
     long_description = open(os.path.join(os.path.dirname(__file__), 'README')).read(),
     license = 'BSD',
-    keywords = 'test django continuous',
-    url = 'http://github.com/coderanger/django-zen',
+    keywords = 'test unittest continuous django flask',
+    url = 'http://github.com/coderanger/pyzen',
     classifiers = [
         'Framework :: Django',
         'Development Status :: 1 - Planning',
@@ -34,5 +33,4 @@ setup(
         'Programming Language :: Python',
     ],
     
-    install_requires = ['Django'],
 )

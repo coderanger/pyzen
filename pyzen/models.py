@@ -1,1 +1,1 @@
-#This space left intentionally blank
+#This space left intentionally blank for Django
