@@ -1,2 +1,5 @@
 *.pyc
 *.egg-info
+demo
+.DS_Store
+
