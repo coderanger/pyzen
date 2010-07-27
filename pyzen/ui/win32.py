@@ -14,6 +14,7 @@ HMENU  = c_void_p
 LPVOID = c_void_p
 HCURSOR = c_void_p
 BRUSH = c_void_p
+ATOM = c_ushort
 
 class GUID(Structure):
     _fields_ = [
@@ -78,21 +79,26 @@ CreateWindowEx = windll.user32.CreateWindowExA
 CreateWindowEx.argtypes = [DWORD, LPCTSTR, LPCTSTR, DWORD, c_int, c_int, c_int, c_int, HWND, HMENU, HINSTANCE, LPVOID]
 CreateWindowEx.restype = HWND
 
-# RegisterClass
-class WNDCLASS(Structure):
+# RegisterClassEx
+class WNDCLASSEX(Structure):
     _fields_ = [
-        ('style', UINT),   #UINT      style;
+        ('cbSize', UINT), #UINT      cbSize;
+        ('style', UINT), #UINT      style;
         ('lpfnWndProc', WNDPROC), #WNDPROC   lpfnWndProc;
-  #int       cbClsExtra;
-  #int       cbWndExtra;
-  #HINSTANCE hInstance;
-  #HICON     hIcon;
-  #HCURSOR   hCursor;
-  #HBRUSH    hbrBackground;
-  #LPCTSTR   lpszMenuName;
-  #LPCTSTR   lpszClassName;
-
+        ('cbClsExtra', c_int), #int       cbClsExtra;
+        ('cbWndExtra', c_int), #int       cbWndExtra;
+        ('hInstance', HINSTANCE), #HINSTANCE hInstance;
+        ('hIcon', HICON), #HICON     hIcon;
+        ('hCursor', HCURSOR), #HCURSOR   hCursor;
+        ('hbrBackground', HBRUSH), #HBRUSH    hbrBackground;
+        ('lpszMenuName', LPCTSTR), #LPCTSTR   lpszMenuName;
+        ('lpszClassName', LPCTSTR), #LPCTSTR   lpszClassName;
+        ('hIconSm', HICON), #HICON     hIconSm;
     ]
+
+RegisterClassEx = windll.user32.RegisterClassExA
+RegisterClassEx.argtypes = [POINTER(WNDCLASSEX)]
+RegisterClassEx.restype = ATOM
     
 
 def load_icon(name):
