@@ -1,6 +1,9 @@
 from ctypes import *
 from pyzen.ui.base import img_path
 
+class WindowsError(Exception):
+    pass
+
 # Some basic Windows types
 DWORD = c_ulong
 HWND = c_void_p
@@ -13,8 +16,9 @@ LPCTSTR = c_char_p
 HMENU  = c_void_p
 LPVOID = c_void_p
 HCURSOR = c_void_p
-BRUSH = c_void_p
+HBRUSH = c_void_p
 ATOM = c_ushort
+HMODULE = c_void_p
 
 class GUID(Structure):
     _fields_ = [
@@ -80,6 +84,10 @@ CreateWindowEx.argtypes = [DWORD, LPCTSTR, LPCTSTR, DWORD, c_int, c_int, c_int, 
 CreateWindowEx.restype = HWND
 
 # RegisterClassEx
+LRESULT = c_long
+WPARAM = c_int
+LPARAM = c_long
+WNDPROC = WINFUNCTYPE(LRESULT, HWND, UINT, WPARAM, LPARAM)
 class WNDCLASSEX(Structure):
     _fields_ = [
         ('cbSize', UINT), #UINT      cbSize;
@@ -99,7 +107,21 @@ class WNDCLASSEX(Structure):
 RegisterClassEx = windll.user32.RegisterClassExA
 RegisterClassEx.argtypes = [POINTER(WNDCLASSEX)]
 RegisterClassEx.restype = ATOM
-    
+
+# GetModuleHandle
+GetModuleHandle = windll.kernel32.GetModuleHandleA
+GetModuleHandle.argtypes = [LPCTSTR]
+GetModuleHandle.restype = HMODULE
+
+# GetSystemMetrics
+GetSystemMetrics = windll.user32.GetSystemMetrics
+GetSystemMetrics.argtypes = [c_int]
+GetSystemMetrics.restype = c_int
+
+SM_CXICON = 11
+SM_CYICON = 12
+SM_CXSMICON = 49
+SM_CYSMICON = 50
 
 def load_icon(name):
     return LoadImage(c_void_p(), img_path(name), IMAGE_ICON, 16, 16, LR_LOADFROMFILE)
@@ -112,4 +134,13 @@ def systray_add(name):
     nid.hIcon = load_icon(name)
     Shell_NotifyIcon(NIM_ADD, byref(nid))
 
-systray_add('green.ico')
+def register_window_class(name, wndproc):
+    wc = WNDCLASSEX()
+    wc.cbSize = sizeof(WNDCLASSEX)
+    wc.lpfnWndProf = WNDPROC(wndproc)
+    wc.lpszClassName = name
+    if not RegisterClassEx(byref(wc)):
+        raise WindowsError('Unable to register window class %s'%name)
+
+def create_window(class_name, name):
+    return CreateWindow(0, class_name, name, 0, 0, 0, 0, 0, c_void_p(), c_void_p(), c_void_p(), c_void_p())
