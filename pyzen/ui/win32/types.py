@@ -1,9 +1,6 @@
 from ctypes import *
 from pyzen.ui.base import img_path
 
-class WindowsError(Exception):
-    pass
-
 # Some basic Windows types
 DWORD = c_ulong
 HWND = c_void_p
@@ -19,6 +16,8 @@ HCURSOR = c_void_p
 HBRUSH = c_void_p
 ATOM = c_ushort
 HMODULE = c_void_p
+LPCVOID = c_void_p
+LPTSTR = c_char_p
 
 class GUID(Structure):
     _fields_ = [
@@ -123,24 +122,64 @@ SM_CYICON = 12
 SM_CXSMICON = 49
 SM_CYSMICON = 50
 
-def load_icon(name):
-    return LoadImage(c_void_p(), img_path(name), IMAGE_ICON, 16, 16, LR_LOADFROMFILE)
+# DefWindowProc
+DefWindowProc = windll.user32.DefWindowProcA
+DefWindowProc.argtypes = [HWND, UINT, WPARAM, LPARAM]
+DefWindowProc.restype = LRESULT
 
-def systray_add(name):
-    nid = NOTIFYICONDATA()
-    nid.cbSize = sizeof(NOTIFYICONDATA)
-    nid.uID = 1
-    nid.uFlags = NIF_ICON
-    nid.hIcon = load_icon(name)
-    Shell_NotifyIcon(NIM_ADD, byref(nid))
+# GetMessage
+class POINT(Structure):
+    _fields_ = [
+        ('x', c_long), # LONG x;
+        ('y', c_long), # LONG y;
+    ]
 
-def register_window_class(name, wndproc):
-    wc = WNDCLASSEX()
-    wc.cbSize = sizeof(WNDCLASSEX)
-    wc.lpfnWndProf = WNDPROC(wndproc)
-    wc.lpszClassName = name
-    if not RegisterClassEx(byref(wc)):
-        raise WindowsError('Unable to register window class %s'%name)
+class MSG(Structure):
+    _fields_ = [
+        ('hwnd', HWND), # HWND   hwnd;
+        ('message', UINT), # UINT   message;
+        ('wParam', WPARAM), # WPARAM wParam;
+        ('lParam', LPARAM), # LPARAM lParam;
+        ('time', DWORD), # DWORD  time;
+        ('pt', POINT), # POINT  pt;
+    ]
 
-def create_window(class_name, name):
-    return CreateWindow(0, class_name, name, 0, 0, 0, 0, 0, c_void_p(), c_void_p(), c_void_p(), c_void_p())
+GetMessage = windll.user32.GetMessageA
+GetMessage.argtypes = [POINTER(MSG), HWND, UINT, UINT]
+GetMessage.restype = BOOL
+
+# TranslateMessage
+TranslateMessage = windll.user32.TranslateMessage
+TranslateMessage.argtypes = [POINTER(MSG)]
+TranslateMessage.restype = BOOL
+
+# DispatchMessage
+DispatchMessage = windll.user32.DispatchMessageA
+DispatchMessage.argtypes = [POINTER(MSG)]
+DispatchMessage.restype = LRESULT
+
+# UpdateWindow
+UpdateWindow = windll.user32.UpdateWindow
+UpdateWindow.argtypes = [HWND]
+UpdateWindow.restype = BOOL
+
+# GetLastError
+GetLastError = windll.kernel32.GetLastError
+GetLastError.argtypes = []
+GetLastError.restype = DWORD
+
+# FormatMessage
+FormatMessage = windll.kernel32.FormatMessageA
+FormatMessage.argtypes = [DWORD, LPCVOID, DWORD, DWORD, POINTER(LPTSTR), DWORD, c_void_p]
+FormatMessage.restype = DWORD
+
+FORMAT_MESSAGE_ALLOCATE_BUFFER = 0x00000100
+FORMAT_MESSAGE_ARGUMENT_ARRAY = 0x00002000
+FORMAT_MESSAGE_FROM_HMODULE = 0x00000800
+FORMAT_MESSAGE_FROM_STRING = 0x00000400
+FORMAT_MESSAGE_FROM_SYSTEM = 0x00001000
+FORMAT_MESSAGE_IGNORE_INSERTS = 0x00000200
+FORMAT_MESSAGE_MAX_WIDTH_MASK = 0x000000FF
+
+# Misc constants
+WM_INITDIALOG = 0x0110
