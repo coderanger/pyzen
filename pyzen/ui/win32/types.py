@@ -1,23 +1,25 @@
+from win32con import *
 from ctypes import *
+from ctypes.wintypes import *
 from pyzen.ui.base import img_path
 
+NULL = c_void_p()
+
+class errcheck(object):
+    
+    def __init__(self, error_value=None):
+        self.error_value = error_value
+    
+    def __call__(self, result, func, arguments):
+        if result == self.error_value:
+            raise WinError()
+        return result
+
 # Some basic Windows types
-DWORD = c_ulong
-HWND = c_void_p
-UINT = c_uint
-HICON = c_void_p
 TCHAR = c_char
-BOOL = c_int
-HINSTANCE = c_void_p
-LPCTSTR = c_char_p
-HMENU  = c_void_p
-LPVOID = c_void_p
-HCURSOR = c_void_p
-HBRUSH = c_void_p
-ATOM = c_ushort
-HMODULE = c_void_p
-LPCVOID = c_void_p
-LPTSTR = c_char_p
+LPCTSTR = LPCSTR
+LPTSTR = LPSTR
+HCURSOR = c_ulong
 
 class GUID(Structure):
     _fields_ = [
@@ -66,10 +68,14 @@ Shell_NotifyIcon = windll.shell32.Shell_NotifyIcon
 Shell_NotifyIcon.argtypes = [DWORD, POINTER(NOTIFYICONDATA)]
 Shell_NotifyIcon.restype = BOOL
 
+# MAKEINTRESOURCE
+MAKEINTRESOURCE = lambda n: cast(n, c_char_p)
+
 # LoadImage
 LoadImage = windll.user32.LoadImageA
 LoadImage.argtypes = [HINSTANCE, LPCTSTR, UINT, c_int, c_int, UINT]
 LoadImage.restype = c_void_p
+LoadImage.errcheck = errcheck()
 
 IMAGE_BITMAP = 0
 IMAGE_CURSOR = 2
@@ -77,16 +83,26 @@ IMAGE_ICON = 1
 
 LR_LOADFROMFILE = 16
 
+# LoadCursor
+LoadCursor = windll.user32.LoadCursorA
+#LoadCursor.argtypes = [HINSTANCE, LPCTSTR]
+LoadCursor.restype = HCURSOR
+LoadCursor.errcheck = errcheck()
+
+IDC_ARROW = MAKEINTRESOURCE(32512)
+
 # CreateWindowEx
 CreateWindowEx = windll.user32.CreateWindowExA
 CreateWindowEx.argtypes = [DWORD, LPCTSTR, LPCTSTR, DWORD, c_int, c_int, c_int, c_int, HWND, HMENU, HINSTANCE, LPVOID]
 CreateWindowEx.restype = HWND
+CreateWindowEx.errcheck = errcheck()    
 
 # RegisterClassEx
 LRESULT = c_long
 WPARAM = c_int
 LPARAM = c_long
 WNDPROC = WINFUNCTYPE(LRESULT, HWND, UINT, WPARAM, LPARAM)
+
 class WNDCLASSEX(Structure):
     _fields_ = [
         ('cbSize', UINT), #UINT      cbSize;
@@ -106,6 +122,12 @@ class WNDCLASSEX(Structure):
 RegisterClassEx = windll.user32.RegisterClassExA
 RegisterClassEx.argtypes = [POINTER(WNDCLASSEX)]
 RegisterClassEx.restype = ATOM
+RegisterClassEx.errcheck = errcheck()
+
+# GetClassInfoEx
+GetClassInfoEx = windll.user32.GetClassInfoExA
+GetClassInfoEx.argtypes = [HINSTANCE, LPCTSTR, POINTER(WNDCLASSEX)]
+GetClassInfoEx.restype = BOOL
 
 # GetModuleHandle
 GetModuleHandle = windll.kernel32.GetModuleHandleA
