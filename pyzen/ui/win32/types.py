@@ -102,6 +102,8 @@ LRESULT = c_long
 WPARAM = c_int
 LPARAM = c_long
 WNDPROC = WINFUNCTYPE(LRESULT, HWND, UINT, WPARAM, LPARAM)
+#WNDPROC = CFUNCTYPE(LRESULT, HWND, UINT, WPARAM, LPARAM)
+#WNDPROC = WINFUNCTYPE(c_long, c_int, c_uint, c_int, c_int)
 
 class WNDCLASSEX(Structure):
     _fields_ = [
@@ -180,6 +182,26 @@ DispatchMessage = windll.user32.DispatchMessageA
 DispatchMessage.argtypes = [POINTER(MSG)]
 DispatchMessage.restype = LRESULT
 
+# IsDialogMessage
+IsDialogMessage = windll.user32.IsDialogMessageA
+IsDialogMessage.argtypes = [HWND, POINTER(MSG)]
+IsDialogMessage.restype = BOOL
+
+# SendMessage
+SendMessage = windll.user32.SendMessageA
+SendMessage.argtype = [HWND, UINT, WPARAM, LPARAM]
+SendMessage.restype = LRESULT
+
+# PostMessage
+PostMessage = windll.user32.PostMessageA
+PostMessage.argtype = [HWND, UINT, WPARAM, LPARAM]
+PostMessage.restype = BOOL
+PostMessage.errcheck = errcheck(0)
+
+# PostQuitMessage
+PostQuitMessage = windll.user32.PostQuitMessage
+PostQuitMessage.argtypes = [c_int]
+
 # UpdateWindow
 UpdateWindow = windll.user32.UpdateWindow
 UpdateWindow.argtypes = [HWND]
@@ -204,4 +226,7 @@ FORMAT_MESSAGE_IGNORE_INSERTS = 0x00000200
 FORMAT_MESSAGE_MAX_WIDTH_MASK = 0x000000FF
 
 # Misc constants
+WM_CREATE = 0x0001
+WM_QUIT = 0x0012
 WM_INITDIALOG = 0x0110
+WM_APP = 0x8000
