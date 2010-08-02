@@ -22,6 +22,13 @@ def systray_add(name, hwnd):
     nid.hWnd = hwnd
     Shell_NotifyIcon(NIM_ADD, byref(nid))
 
+def systray_delete(hwnd):
+    nid = NOTIFYICONDATA()
+    nid.cbSize = sizeof(NOTIFYICONDATA)
+    nid.uID = 1
+    nid.hWnd = hwnd
+    Shell_NotifyIcon(NIM_DELETE, byref(nid))
+
 def create_window(name, wndproc):
     wc = WNDCLASSEX()
     wc.cbSize = sizeof(WNDCLASSEX)
@@ -32,16 +39,20 @@ def create_window(name, wndproc):
     RegisterClassEx(pointer(wc))
     return CreateWindowEx(0, wc.lpszClassName, name, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, wc.hInstance, 0)
 
-def message_loop(hwnd):
+def message_loop(hwnd, wndproc):
     msg = MSG()
     while 1:
         print 'Waiting for a message'
         got_message = GetMessage(byref(msg), None, 0, 0)
         print 'got_message=%r'%(got_message)
         if got_message == 0 or got_message == -1:
+            wndproc(hwnd, WM_QUIT, msg.wParam, msg.lParam)
             break
         print 'message=%s hwnd=%s wparam=%s lparam=%s'%(msg.message, msg.hwnd, msg.wParam, msg.lParam)
         if IsDialogMessage(hwnd, byref(msg)):
             continue
         TranslateMessage(byref(msg))
-        DispatchMessage(byref(msg))
+        if msg.message == WM_APP:
+            wndproc(hwnd, msg.message, msg.wParam, msg.lParam)
+        else:
+            DispatchMessage(byref(msg))

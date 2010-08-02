@@ -202,10 +202,26 @@ PostMessage.errcheck = errcheck(0)
 PostQuitMessage = windll.user32.PostQuitMessage
 PostQuitMessage.argtypes = [c_int]
 
+# PostThreadMessage
+PostThreadMessage = windll.user32.PostThreadMessageA
+PostThreadMessage.argtypes = [DWORD, UINT, WPARAM, LPARAM]
+PostThreadMessage.restype = BOOL
+PostThreadMessage.errcheck = errcheck(0)
+
 # UpdateWindow
 UpdateWindow = windll.user32.UpdateWindow
 UpdateWindow.argtypes = [HWND]
 UpdateWindow.restype = BOOL
+
+# GetWindowThreadProcessId
+GetWindowThreadProcessId = windll.user32.GetWindowThreadProcessId
+GetWindowThreadProcessId.argtypes = [HWND, POINTER(DWORD)]
+GetWindowThreadProcessId.restype = DWORD
+
+# GetCurrentThreadId
+GetCurrentThreadId = windll.kernel32.GetCurrentThreadId
+GetCurrentThreadId.argtypes = []
+GetCurrentThreadId.restype = DWORD
 
 # GetLastError
 GetLastError = windll.kernel32.GetLastError
