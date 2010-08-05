@@ -31,7 +31,7 @@ def run_tests(app, pattern, start_dir, verbosity):
     loader = ZenTestLoader()
     suite = loader.discover(start_dir, pattern, start_dir)
     result = unittest.TextTestRunner(verbosity=verbosity).run(suite)
-    return len(result.failures)
+    return result
 
 class Test(Command):
     """Run app tests."""
@@ -57,8 +57,8 @@ class Test(Command):
         ]
     
     def run(self, app, pattern, start_dir, verbosity):
-        failures = run_tests(app, pattern, start_dir, verbosity)
-        if failures:
+        result = run_tests(app, pattern, start_dir, verbosity)
+        if result.failures or results.errors:
             sys.exit(1)
 
 

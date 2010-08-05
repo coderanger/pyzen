@@ -5,6 +5,8 @@ from multiprocessing import Process, Queue
 from threading import Thread
 from Queue import Empty
 
+from pyzen.ui import load_ui
+
 _SLEEP_TIME = 1
 
 def _reloader_thread():
@@ -42,8 +44,15 @@ def _reloader_thread():
         time.sleep(_SLEEP_TIME)
 
 def _runner_thread(q, func, args, kwargs):
-    failures = func(*args, **kwargs)
-    q.put(failures)
+    start_time = time.clock()
+    result = func(*args, **kwargs)
+    end_time = time.clock()
+    q.put({
+        'failures': len(result.failures),
+        'errors': len(result.errors),
+        'total': result.testsRun,
+        'time': end_time - start_time,
+    })
 
 def reloader(q, func, args, kwargs):
     t = Thread(target=_runner_thread, args=(q, func, args, kwargs))
@@ -54,6 +63,7 @@ def reloader(q, func, args, kwargs):
         pass
 
 def main(func, *args, **kwargs):
+    ui = load_ui()
     while True:
         q = Queue()
         p = Process(target=reloader, args=(q, func, args, kwargs))
@@ -62,12 +72,14 @@ def main(func, *args, **kwargs):
         while True:
             try:
                 cmd = q.get(True, _SLEEP_TIME)
+                if ui is not None:
+                    ui.handle(**cmd)
             except Empty:
                 # Timed out, check if we need to restart
                 if not p.is_alive():
                     if p.exitcode == 3:
-                        break
+                        break # This means we need to restart it
                     else:
-                        return
+                        return p.exitcode # Any other return code should be considered real
 
 

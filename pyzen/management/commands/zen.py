@@ -11,7 +11,6 @@ except ImportError:
 from pyzen.core import main
 
 class ZenTestRunner(DjangoTestRunner):
-    
     def run(self, *args, **kwargs):
         return super(DjangoTestRunner, self).run(*args, **kwargs)
 
@@ -25,10 +24,12 @@ def run_tests(**options):
     class NewTestSuiteRunner(TestSuiteRunner):
         def run_suite(self, suite, **kwargs):
             return ZenTestRunner(verbosity=self.verbosity, failfast=self.failfast).run(suite)
+        def suite_result(self, suite, result, **kwargs):
+            return result
     
     test_runner = NewTestSuiteRunner(verbosity=verbosity, interactive=interactive, failfast=failfast)
-    failures = test_runner.run_tests([])
-    return len(failures)
+    result = test_runner.run_tests([])
+    return result
 
 class Command(NoArgsCommand):
     

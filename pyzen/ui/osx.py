@@ -1,6 +1,6 @@
 import subprocess
 
-from pyzen.ui.base import img_path
+from pyzen.ui.base import img_path, PyZenUI
 
 class AppleScriptError(Exception):
     pass
@@ -44,14 +44,37 @@ def register_app():
     end tell"""
     run_script(script)
 
-def notify(type, title, msg):
+def notify(type, title, msg, img='logo.png'):
     script= """
     tell application "GrowlHelperApp"
      notify with name "%s" title "%s" description "%s" application name "ZenTest" image from location "file://%s"
-    end tell"""%(type, title, msg, img_path('logo.png'))
-    print script
+    end tell"""%(type, title, msg, img_path(img))
     run_script(script)
 
-if is_growl_running():
-    register_app()
-    notify('Test Successful', 'Test Successful', 'Run 1 test(s) in 0.001 seconds')
+class GrowlUI(PyZenUI):
+    """A ZenTest UI that uses Growl. Only supported on OS X."""
+    
+    def __init__(self):
+        self.enabled = is_growl_running()
+        if self.enabled:
+            register_app()
+    
+    def success(self, total, time):
+        msg = 'Ran %s test%s in %0.3f seconds'%(total, total==1 and '' or 's', time)
+        notify('Test Successful', 'Test Successful', msg, 'green.png')
+    
+    def fail(self, failures, errors, total, time):
+        submsg = []
+        if failures:
+            submsg.append('failures=%s'%failures)
+        if errors:
+            submsg.append('errors=%s'%errors)
+        msg = 'Ran %s test%s in %0.3f seconds (%s)'%(total, total==1 and '' or 's', time, ' '.join(submsg))
+        notify('Test Failure', 'Test Failure', msg, 'red.png')
+
+
+# Random test stuff
+if __name__ == '__main__':
+    if is_growl_running():
+        register_app()
+        notify('Test Successful', 'Test Successful', 'Run 1 test(s) in 0.001 seconds', 'red.png')
