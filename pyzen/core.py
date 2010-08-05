@@ -1,5 +1,9 @@
+import sys
+import os
+import time
 from multiprocessing import Process, Queue
 from threading import Thread
+from Queue import Empty
 
 _SLEEP_TIME = 1
 
@@ -37,10 +41,17 @@ def _reloader_thread():
                 sys.exit(3)
         time.sleep(_SLEEP_TIME)
 
+def _runner_thread(q, func, args, kwargs):
+    failures = func(*args, **kwargs)
+    q.put(failures)
+
 def reloader(q, func, args, kwargs):
-    t = Thread(target=func, args=args, kwargs=kwargs)
+    t = Thread(target=_runner_thread, args=(q, func, args, kwargs))
     t.start()
-    _reloader_thread()
+    try:
+        _reloader_thread()
+    except KeyboardInterrupt:
+        pass
 
 def main(func, *args, **kwargs):
     while True:
@@ -48,11 +59,15 @@ def main(func, *args, **kwargs):
         p = Process(target=reloader, args=(q, func, args, kwargs))
         p.daemon = True
         p.start()
-        try:
-            cmd = q.get(True, _SLEEP_TIME)
-        except Queue.Empty:
-            # Timed out, check if we need to restart
-            if not p.is_alive() and p.exitcode != 3:
-                break
+        while True:
+            try:
+                cmd = q.get(True, _SLEEP_TIME)
+            except Empty:
+                # Timed out, check if we need to restart
+                if not p.is_alive():
+                    if p.exitcode == 3:
+                        break
+                    else:
+                        return
 
 

@@ -6,7 +6,7 @@ import fnmatch
 
 from flaskext.script import Command, Option
 
-from pyzen import reload
+from pyzen.core import main
 
 try:
     from unittest2 import TestLoader
@@ -31,8 +31,7 @@ def run_tests(app, pattern, start_dir, verbosity):
     loader = ZenTestLoader()
     suite = loader.discover(start_dir, pattern, start_dir)
     result = unittest.TextTestRunner(verbosity=verbosity).run(suite)
-    if result.failures:
-        sys.exit(1)
+    return len(result.failures)
 
 class Test(Command):
     """Run app tests."""
@@ -58,11 +57,16 @@ class Test(Command):
         ]
     
     def run(self, app, pattern, start_dir, verbosity):
-        run_tests(app, pattern, start_dir, verbosity)
+        failures = run_tests(app, pattern, start_dir, verbosity)
+        if failures:
+            sys.exit(1)
 
 
 class ZenTest(Test):
     """Run app tests continuously."""
     
     def run(self, app, pattern, start_dir, verbosity):
-        reload.main(run_tests, None, app, pattern, start_dir, verbosity)
+        try:
+            main(run_tests, app, pattern, start_dir, verbosity)
+        except KeyboardInterrupt:
+            pass

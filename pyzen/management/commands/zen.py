@@ -28,6 +28,7 @@ def run_tests(**options):
     
     test_runner = NewTestSuiteRunner(verbosity=verbosity, interactive=interactive, failfast=failfast)
     failures = test_runner.run_tests([])
+    return len(failures)
 
 class Command(NoArgsCommand):
     
