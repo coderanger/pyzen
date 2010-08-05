@@ -58,7 +58,7 @@ class Test(Command):
     
     def run(self, app, pattern, start_dir, verbosity):
         result = run_tests(app, pattern, start_dir, verbosity)
-        if result.failures or results.errors:
+        if result.failures or result.errors:
             sys.exit(1)
 
 
