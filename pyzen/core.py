@@ -62,8 +62,8 @@ def reloader(q, func, args, kwargs):
     except KeyboardInterrupt:
         pass
 
-def main(func, *args, **kwargs):
-    ui = load_ui()
+def main(ui_override, func, *args, **kwargs):
+    ui = load_ui(ui_override)
     while True:
         q = Queue()
         p = Process(target=reloader, args=(q, func, args, kwargs))

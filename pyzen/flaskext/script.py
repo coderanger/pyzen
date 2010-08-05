@@ -65,8 +65,13 @@ class Test(Command):
 class ZenTest(Test):
     """Run app tests continuously."""
     
-    def run(self, app, pattern, start_dir, verbosity):
+    def get_options(self):
+        options = super(ZenTest, self).get_options()
+        options.append(Option('-u', '--ui', help='Force the use of the given PyZen UI'))
+        return options
+    
+    def run(self, app, pattern, start_dir, verbosity, ui):
         try:
-            main(run_tests, app, pattern, start_dir, verbosity)
+            main(ui, run_tests, app, pattern, start_dir, verbosity)
         except KeyboardInterrupt:
             pass

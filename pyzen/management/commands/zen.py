@@ -1,3 +1,5 @@
+from optparse import make_option
+
 from django.conf import settings
 from django.core.management.base import NoArgsCommand, CommandError
 from django.test.simple import DjangoTestRunner
@@ -33,8 +35,12 @@ def run_tests(**options):
 
 class Command(NoArgsCommand):
     
+    option_list = NoArgsCommand.option_list + (
+        make_option('-u', '--ui', help='Force the use of the given PyZen UI'),
+    )
+    
     def handle_noargs(self, **options):
         try:
-            main(run_tests)
+            main(options.get('ui'), run_tests)
         except KeyboardInterrupt:
             pass

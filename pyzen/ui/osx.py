@@ -54,14 +54,18 @@ def notify(type, title, msg, img='logo.png'):
 class GrowlUI(PyZenUI):
     """A ZenTest UI that uses Growl. Only supported on OS X."""
     
+    name = 'osx'
+    platform = 'darwin'
+    
     def __init__(self):
-        self.enabled = is_growl_running()
-        if self.enabled:
+        self.has_growl = is_growl_running()
+        if self.has_growl:
             register_app()
     
     def success(self, total, time):
         msg = 'Ran %s test%s in %0.3f seconds'%(total, total==1 and '' or 's', time)
-        notify('Test Successful', 'Test Successful', msg, 'green.png')
+        if self.has_growl:
+            notify('Test Successful', 'Test Successful', msg, 'green.png')
     
     def fail(self, failures, errors, total, time):
         submsg = []
@@ -70,7 +74,8 @@ class GrowlUI(PyZenUI):
         if errors:
             submsg.append('errors=%s'%errors)
         msg = 'Ran %s test%s in %0.3f seconds (%s)'%(total, total==1 and '' or 's', time, ' '.join(submsg))
-        notify('Test Failure', 'Test Failure', msg, 'red.png')
+        if self.has_growl:
+            notify('Test Failure', 'Test Failure', msg, 'red.png')
 
 
 # Random test stuff
