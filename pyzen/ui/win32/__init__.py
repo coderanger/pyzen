@@ -12,10 +12,10 @@ class Win32UI(PyZenUI):
         self.thread.start()
     
     def success(self, total, time):
-        pass
+        self.thread.post_message(WM_APP, 0, 0)
     
     def fail(self, failures, errors, total, time):
-        pass
+        self.thread.post_message(WM_APP, 1, 0)
     
     def shutdown(self):
         self.thread.quit()

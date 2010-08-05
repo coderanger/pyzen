@@ -31,6 +31,15 @@ def systray_delete(hwnd):
     nid.hWnd = hwnd
     Shell_NotifyIcon(NIM_DELETE, byref(nid))
 
+def systray_modify(name, title, msg, hwnd):
+    nid = NOTIFYICONDATA()
+    nid.cbSize = sizeof(NOTIFYICONDATA)
+    nid.uID = 1
+    nid.uFlags = NIF_ICON
+    nid.hIcon = load_icon(name)
+    nid.hWnd = hwnd
+    Shell_NotifyIcon(NIM_MODIFY, byref(nid))
+
 def create_window(name, wndproc):
     wc = WNDCLASSEX()
     wc.cbSize = sizeof(WNDCLASSEX)
@@ -74,7 +83,10 @@ class SystrayIconThread(threading.Thread):
             systray_delete(hwnd)
             return True
         if msg == WM_APP:
-            print 'HELLO WORLD'
+            if wparam:
+                systray_modify('red.ico', '', '', hwnd)
+            else:
+                systray_modify('green.ico', '', '', hwnd)
             return True
         return DefWindowProc(hwnd, msg, wparam, lparam)
     
