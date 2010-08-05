@@ -8,7 +8,7 @@ try:
 except ImportError:
     patch_for_test_db_setup = lambda: None
     
-from pyzen import reload
+from pyzen.core import main
 
 class ZenTestRunner(DjangoTestRunner):
     
@@ -32,4 +32,4 @@ def run_tests(**options):
 class Command(NoArgsCommand):
     
     def handle_noargs(self, **options):
-        reload.main(run_tests, None)
+        main(run_tests)
