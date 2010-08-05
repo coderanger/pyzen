@@ -63,25 +63,30 @@ def reloader(q, func, args, kwargs):
         pass
 
 def main(ui_override, func, *args, **kwargs):
+    p = None
     ui = load_ui(ui_override)
-    while True:
-        q = Queue()
-        p = Process(target=reloader, args=(q, func, args, kwargs))
-        p.daemon = True
-        p.start()
+    try:
         while True:
-            try:
-                cmd = q.get(True, _SLEEP_TIME)
-                if ui is not None:
-                    ui.handle(**cmd)
-            except Empty:
-                # Timed out, check if we need to restart
-                if not p.is_alive():
-                    if p.exitcode == 3:
-                        break # This means we need to restart it
-                    else:
-                        if ui is not None:
-                            ui.shutdown()
-                        return p.exitcode # Any other return code should be considered real
+            q = Queue()
+            p = Process(target=reloader, args=(q, func, args, kwargs))
+            p.daemon = True
+            p.start()
+            while True:
+                try:
+                    cmd = q.get(True, _SLEEP_TIME)
+                    if ui is not None:
+                        ui.handle(**cmd)
+                except Empty:
+                    # Timed out, check if we need to restart
+                    if not p.is_alive():
+                        if p.exitcode == 3:
+                            break # This means we need to restart it
+                        else:
+                            return p.exitcode # Any other return code should be considered real
+    finally:
+        if ui is not None:
+            ui.shutdown()
+        if p is not None:
+            p.terminate()
 
 

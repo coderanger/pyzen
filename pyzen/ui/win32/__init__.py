@@ -11,11 +11,8 @@ class Win32UI(PyZenUI):
         self.thread = SystrayIconThread()
         self.thread.start()
     
-    def success(self, total, time):
-        self.thread.post_message(WM_APP, 0, 0)
-    
-    def fail(self, failures, errors, total, time):
-        self.thread.post_message(WM_APP, 1, 0)
+    def notify(self, failure, title, msg, icon):
+        self.thread.notify(title, msg, icon+'.ico')
     
     def shutdown(self):
         self.thread.quit()

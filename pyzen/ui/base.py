@@ -31,9 +31,19 @@ class PyZenUI(object):
             self.success(total, time)
     
     def success(self, total, time):
-        raise NotImplementedError
+        msg = 'Ran %s test%s in %0.3f seconds'%(total, total==1 and '' or 's', time)
+        self.notify(False, 'Test Successful', msg, 'green')
     
     def fail(self, failures, errors, total, time):
+        submsg = []
+        if failures:
+            submsg.append('failures=%s'%failures)
+        if errors:
+            submsg.append('errors=%s'%errors)
+        msg = 'Ran %s test%s in %0.3f seconds (%s)'%(total, total==1 and '' or 's', time, ' '.join(submsg))
+        self.notify(True, 'Test Failure', msg, 'red')
+    
+    def notify(self, failure, title, msg, icon):
         raise NotImplementedError
     
     def shutdown(self):

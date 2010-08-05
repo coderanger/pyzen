@@ -2,13 +2,6 @@ import threading
 
 from pyzen.ui.win32.types import *
 
-#class WindowsError(Exception):
-#    def __init__(self, msg, *args):
-#        last_error = GetLastError()
-#        error_msg = c_char_p()
-#        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, c_void_p(), last_error, 0, byref(error_msg), 0, c_void_p())
-#        super(WindowsError, self).__init__((msg%args)+': '+error_msg.value)
-
 def load_icon(name):
     return LoadImage(None, img_path(name), IMAGE_ICON, 16, 16, LR_LOADFROMFILE)
 
@@ -19,9 +12,11 @@ def systray_add(name, hwnd):
     nid = NOTIFYICONDATA()
     nid.cbSize = sizeof(NOTIFYICONDATA)
     nid.uID = 1
-    nid.uFlags = NIF_ICON
+    nid.uFlags = NIF_ICON | NIF_TIP
     nid.hIcon = load_icon(name)
     nid.hWnd = hwnd
+    tip = 'PyZen'
+    memmove(addressof(nid)+NOTIFYICONDATA.szTip.offset, tip, min(255, len(tip)))
     Shell_NotifyIcon(NIM_ADD, byref(nid))
 
 def systray_delete(hwnd):
@@ -35,8 +30,13 @@ def systray_modify(name, title, msg, hwnd):
     nid = NOTIFYICONDATA()
     nid.cbSize = sizeof(NOTIFYICONDATA)
     nid.uID = 1
-    nid.uFlags = NIF_ICON
+    nid.uFlags = NIF_ICON | NIF_INFO | NIF_TIP | NIF_SHOWTIP
     nid.hIcon = load_icon(name)
+    tip = 'PyZen: '+title
+    memmove(addressof(nid)+NOTIFYICONDATA.szTip.offset, tip, min(255, len(tip)))
+    memmove(addressof(nid)+NOTIFYICONDATA.szInfo.offset, msg, min(255, len(msg)))
+    memmove(addressof(nid)+NOTIFYICONDATA.szInfoTitle.offset, title, min(63, len(title)))
+    nid.uTimeout = 10000
     nid.hWnd = hwnd
     Shell_NotifyIcon(NIM_MODIFY, byref(nid))
 
@@ -53,13 +53,10 @@ def create_window(name, wndproc):
 def message_loop(hwnd, wndproc):
     msg = MSG()
     while 1:
-        print 'Waiting for a message'
         got_message = GetMessage(byref(msg), None, 0, 0)
-        print 'got_message=%r'%(got_message)
         if got_message == 0 or got_message == -1:
             wndproc(hwnd, WM_QUIT, msg.wParam, msg.lParam)
             break
-        print 'message=%s hwnd=%s wparam=%s lparam=%s'%(msg.message, msg.hwnd, msg.wParam, msg.lParam)
         if IsDialogMessage(hwnd, byref(msg)):
             continue
         TranslateMessage(byref(msg))
@@ -68,6 +65,13 @@ def message_loop(hwnd, wndproc):
         else:
             DispatchMessage(byref(msg))
 
+class NotifyData(Structure):
+    _fields_ = [
+        ('title', c_char_p),
+        ('msg', c_char_p),
+        ('icon', c_char_p),
+    ]
+
 class SystrayIconThread(threading.Thread):
     
     def run(self):
@@ -75,25 +79,29 @@ class SystrayIconThread(threading.Thread):
         message_loop(self.hwnd, self.window_proc)
 
     def window_proc(self, hwnd, msg, wparam, lparam):
-        print 'window_proc hwnd=%s msg=%s'%(hwnd, msg)
         if msg == WM_CREATE:
             systray_add('green.ico', hwnd)
+            #systray_modify('green.ico', 'Message', 'Testing', hwnd)
             return True
         if msg == WM_QUIT:
             systray_delete(hwnd)
             return True
         if msg == WM_APP:
-            if wparam:
-                systray_modify('red.ico', '', '', hwnd)
-            else:
-                systray_modify('green.ico', '', '', hwnd)
+            pnd = cast(lparam, POINTER(NotifyData))
+            nd = pnd.contents
+            systray_modify(nd.icon, nd.title, nd.msg, hwnd)
             return True
         return DefWindowProc(hwnd, msg, wparam, lparam)
     
     def post_message(self, msg, wparam, lparam):
-        print 'Sending %s to %s'%(msg, self.ident)
         PostThreadMessage(self.ident, msg, wparam, lparam)
     
     def quit(self):
-        #PostQuitMessage(0)
         self.post_message(WM_QUIT, 0, 0)
+    
+    def notify(self, title, msg, icon):
+        nd = NotifyData()
+        nd.title = title
+        nd.msg = msg
+        nd.icon = icon
+        self.post_message(WM_APP, 0, cast(pointer(nd), LPARAM))

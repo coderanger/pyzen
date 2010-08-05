@@ -64,6 +64,12 @@ NIF_GUID = 0x0020
 NIF_REALTIME = 0x0040
 NIF_SHOWTIP = 0x0080
 
+NIIF_NONE = 0x0000
+NIIF_INFO = 0x0001
+NIIF_WARNING = 0x0002
+NIIF_ERROR = 0x0003
+NIIF_USER = 0x0004
+
 Shell_NotifyIcon = windll.shell32.Shell_NotifyIcon
 Shell_NotifyIcon.argtypes = [DWORD, POINTER(NOTIFYICONDATA)]
 Shell_NotifyIcon.restype = BOOL
@@ -100,7 +106,7 @@ CreateWindowEx.errcheck = errcheck()
 # RegisterClassEx
 LRESULT = c_long
 WPARAM = c_int
-LPARAM = c_long
+LPARAM = c_void_p
 WNDPROC = WINFUNCTYPE(LRESULT, HWND, UINT, WPARAM, LPARAM)
 #WNDPROC = CFUNCTYPE(LRESULT, HWND, UINT, WPARAM, LPARAM)
 #WNDPROC = WINFUNCTYPE(c_long, c_int, c_uint, c_int, c_int)
