@@ -34,4 +34,7 @@ def run_tests(**options):
 class Command(NoArgsCommand):
     
     def handle_noargs(self, **options):
-        main(run_tests)
+        try:
+            main(run_tests)
+        except KeyboardInterrupt:
+            pass
