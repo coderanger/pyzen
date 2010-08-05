@@ -35,7 +35,9 @@ class PyZenUI(object):
     
     def fail(self, failures, errors, total, time):
         raise NotImplementedError
-
+    
+    def shutdown(self):
+        pass
 
 def load_ui(override):
     if override:

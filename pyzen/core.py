@@ -80,6 +80,8 @@ def main(ui_override, func, *args, **kwargs):
                     if p.exitcode == 3:
                         break # This means we need to restart it
                     else:
+                        if ui is not None:
+                            ui.shutdown()
                         return p.exitcode # Any other return code should be considered real
 
 

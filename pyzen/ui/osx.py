@@ -52,7 +52,7 @@ def notify(type, title, msg, img='logo.png'):
     run_script(script)
 
 class GrowlUI(PyZenUI):
-    """A ZenTest UI that uses Growl. Only supported on OS X."""
+    """A PyZen UI that uses Growl. Only supported on OS X."""
     
     name = 'osx'
     platform = 'darwin'
