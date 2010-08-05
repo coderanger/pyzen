@@ -1,3 +1,5 @@
+import threading
+
 from pyzen.ui.win32.types import *
 
 #class WindowsError(Exception):
@@ -29,6 +31,15 @@ def systray_delete(hwnd):
     nid.hWnd = hwnd
     Shell_NotifyIcon(NIM_DELETE, byref(nid))
 
+def systray_modify(name, title, msg, hwnd):
+    nid = NOTIFYICONDATA()
+    nid.cbSize = sizeof(NOTIFYICONDATA)
+    nid.uID = 1
+    nid.uFlags = NIF_ICON
+    nid.hIcon = load_icon(name)
+    nid.hWnd = hwnd
+    Shell_NotifyIcon(NIM_MODIFY, byref(nid))
+
 def create_window(name, wndproc):
     wc = WNDCLASSEX()
     wc.cbSize = sizeof(WNDCLASSEX)
@@ -56,3 +67,33 @@ def message_loop(hwnd, wndproc):
             wndproc(hwnd, msg.message, msg.wParam, msg.lParam)
         else:
             DispatchMessage(byref(msg))
+
+class SystrayIconThread(threading.Thread):
+    
+    def run(self):
+        self.hwnd = create_window('PyZen', self.window_proc)
+        message_loop(self.hwnd, self.window_proc)
+
+    def window_proc(self, hwnd, msg, wparam, lparam):
+        print 'window_proc hwnd=%s msg=%s'%(hwnd, msg)
+        if msg == WM_CREATE:
+            systray_add('green.ico', hwnd)
+            return True
+        if msg == WM_QUIT:
+            systray_delete(hwnd)
+            return True
+        if msg == WM_APP:
+            if wparam:
+                systray_modify('red.ico', '', '', hwnd)
+            else:
+                systray_modify('green.ico', '', '', hwnd)
+            return True
+        return DefWindowProc(hwnd, msg, wparam, lparam)
+    
+    def post_message(self, msg, wparam, lparam):
+        print 'Sending %s to %s'%(msg, self.ident)
+        PostThreadMessage(self.ident, msg, wparam, lparam)
+    
+    def quit(self):
+        #PostQuitMessage(0)
+        self.post_message(WM_QUIT, 0, 0)

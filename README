@@ -46,4 +46,4 @@ Usage
 -----
 The ``Test`` command will run a single test run and exit. The ``ZenTest``
 command will run the normal PyZen continuous tester. You can override the
-auto-detected base directory with the ``--star-dir=`` argument.
+auto-detected base directory with the ``--start-dir=`` argument.

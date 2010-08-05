@@ -1,3 +1,5 @@
+from optparse import make_option
+
 from django.conf import settings
 from django.core.management.base import NoArgsCommand, CommandError
 from django.test.simple import DjangoTestRunner
@@ -8,10 +10,9 @@ try:
 except ImportError:
     patch_for_test_db_setup = lambda: None
     
-from pyzen import reload
+from pyzen.core import main
 
 class ZenTestRunner(DjangoTestRunner):
-    
     def run(self, *args, **kwargs):
         return super(DjangoTestRunner, self).run(*args, **kwargs)
 
@@ -25,11 +26,21 @@ def run_tests(**options):
     class NewTestSuiteRunner(TestSuiteRunner):
         def run_suite(self, suite, **kwargs):
             return ZenTestRunner(verbosity=self.verbosity, failfast=self.failfast).run(suite)
+        def suite_result(self, suite, result, **kwargs):
+            return result
     
     test_runner = NewTestSuiteRunner(verbosity=verbosity, interactive=interactive, failfast=failfast)
-    failures = test_runner.run_tests([])
+    result = test_runner.run_tests([])
+    return result
 
 class Command(NoArgsCommand):
     
+    option_list = NoArgsCommand.option_list + (
+        make_option('-u', '--ui', help='Force the use of the given PyZen UI'),
+    )
+    
     def handle_noargs(self, **options):
-        reload.main(run_tests, None)
+        try:
+            main(options.get('ui'), run_tests)
+        except KeyboardInterrupt:
+            pass
