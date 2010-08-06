@@ -1,6 +1,7 @@
 import sys
 import os
 import time
+import traceback
 from multiprocessing import Process, Queue
 from threading import Thread
 from Queue import Empty
@@ -44,15 +45,24 @@ def _reloader_thread():
         time.sleep(_SLEEP_TIME)
 
 def _runner_thread(q, func, args, kwargs):
-    start_time = time.clock()
-    result = func(*args, **kwargs)
-    end_time = time.clock()
-    q.put({
-        'failures': len(result.failures),
-        'errors': len(result.errors),
-        'total': result.testsRun,
-        'time': end_time - start_time,
-    })
+    try:
+        start_time = time.clock()
+        result = func(*args, **kwargs)
+        end_time = time.clock()
+        q.put({
+            'failures': len(result.failures),
+            'errors': len(result.errors),
+            'total': result.testsRun,
+            'time': end_time - start_time,
+        })
+    except Exception:
+        traceback.print_exc()
+        q.put({
+            'failures': -1,
+            'errors': -1,
+            'total': -1,
+            'time': 0,
+        })
 
 def reloader(q, func, args, kwargs):
     t = Thread(target=_runner_thread, args=(q, func, args, kwargs))
