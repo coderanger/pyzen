@@ -1,7 +1,7 @@
 from optparse import make_option
 
 from django.conf import settings
-from django.core.management.base import NoArgsCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError
 from django.test.simple import DjangoTestRunner
 from django.test.utils import get_runner
 
@@ -16,7 +16,7 @@ class ZenTestRunner(DjangoTestRunner):
     def run(self, *args, **kwargs):
         return super(DjangoTestRunner, self).run(*args, **kwargs)
 
-def run_tests(**options):
+def run_tests(*test_labels, **options):
     patch_for_test_db_setup()
     verbosity = int(options.get('verbosity', 1))
     interactive = options.get('interactive', True)
@@ -30,17 +30,17 @@ def run_tests(**options):
             return result
     
     test_runner = NewTestSuiteRunner(verbosity=verbosity, interactive=interactive, failfast=failfast)
-    result = test_runner.run_tests([])
+    result = test_runner.run_tests(test_labels)
     return result
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     
-    option_list = NoArgsCommand.option_list + (
+    option_list = BaseCommand.option_list + (
         make_option('-u', '--ui', help='Force the use of the given PyZen UI'),
     )
     
-    def handle_noargs(self, **options):
+    def handle(self, *test_labels, **options):
         try:
-            main(options.get('ui'), run_tests)
+            main(options.get('ui'), run_tests, *test_labels, **options)
         except KeyboardInterrupt:
             pass
