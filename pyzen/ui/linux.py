@@ -20,5 +20,5 @@ class LibnotifyUI(PyZenUI):
     
     def notify(self, failure, title, msg, icon):
         if self.has_notify:
-            n = pynotify.Notification(title, msg, 'file://'+img_path(icon))
+            n = pynotify.Notification(title, msg, 'file://'+img_path(icon+'.png'))
             n.show()
