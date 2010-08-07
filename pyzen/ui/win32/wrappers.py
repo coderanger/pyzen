@@ -57,13 +57,17 @@ def message_loop(hwnd, wndproc):
         if got_message == 0 or got_message == -1:
             wndproc(hwnd, WM_QUIT, msg.wParam, msg.lParam)
             break
-        if IsDialogMessage(hwnd, byref(msg)):
+        try:
+            if IsDialogMessage(hwnd, byref(msg)):
+                continue
+            TranslateMessage(byref(msg))
+            if msg.message == WM_APP:
+                wndproc(hwnd, msg.message, msg.wParam, msg.lParam)
+            else:
+                DispatchMessage(byref(msg))
+        except WindowsError:
+            print 'Error processing msg(%s, %s, %s)'%(msg.message, msg.wParam, msg.lParam)
             continue
-        TranslateMessage(byref(msg))
-        if msg.message == WM_APP:
-            wndproc(hwnd, msg.message, msg.wParam, msg.lParam)
-        else:
-            DispatchMessage(byref(msg))
 
 class NotifyData(Structure):
     _fields_ = [
