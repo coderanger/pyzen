@@ -10,7 +10,19 @@ def run_tests(loader, args, path):
     sys.path[:] = path
     loader_ep = EntryPoint.parse("x="+loader)
     loader_class = loader_ep.load(require=False)
-    unittest.main(None, None, [unittest.__file__]+args, testLoader=loader_class())
+    fail = False
+    try:
+        unittest.main(None, None, [unittest.__file__]+args, testLoader=loader_class())
+    except SystemExit, e:
+        if e.code:
+            fail = True
+    
+    result = unittest.TestResult()
+    result.total = -1
+    # len(failures)==1 indicates failure
+    if fail:
+        result.failures.append(None)
+    return result
 
 class zen(test):
     """Command to run test suite under PyZen."""
