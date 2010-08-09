@@ -34,6 +34,9 @@ setup(
     entry_points = {
         'distutils.commands': [
             'zen = pyzen.distutils:zen',
-        ]
+        ],
+        'console_scripts': [
+            'pyzen = pyzen.simple:main',
+        ],
     },
 )
