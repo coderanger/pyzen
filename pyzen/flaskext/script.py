@@ -7,7 +7,7 @@ import fnmatch
 from flaskext.script import Command, Option
 
 from pyzen.core import main
-from pyzen.runner import ColoredTextTestRunner
+from pyzen.runner import get_test_runner
 
 try:
     from unittest2 import TestLoader
@@ -31,11 +31,7 @@ def run_tests(app, pattern, start_dir, verbosity, nocolor):
     print start_dir
     loader = ZenTestLoader()
     suite = loader.discover(start_dir, pattern, start_dir)
-    if nocolor:
-        runner = unittest.TextTestRunner
-    else:
-        runner = ColoredTextTestRunner
-    result = runner(verbosity=verbosity).run(suite)
+    result = get_test_runner(nocolor)(verbosity=verbosity).run(suite)
     return result
 
 class Test(Command):

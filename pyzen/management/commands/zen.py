@@ -12,7 +12,7 @@ except ImportError:
     patch_for_test_db_setup = lambda: None
     
 from pyzen.core import main
-from pyzen.runner import ColoredTextTestRunner
+from pyzen.runner import get_test_runner
 
 def run_tests(*test_labels, **options):
     patch_for_test_db_setup()
@@ -24,10 +24,7 @@ def run_tests(*test_labels, **options):
     
     class NewTestSuiteRunner(TestSuiteRunner):
         def run_suite(self, suite, **kwargs):
-            if nocolor:
-                return unittest.TextTestRunner(verbosity=self.verbosity).run(suite)
-            else:
-                return ColoredTextTestRunner(verbosity=self.verbosity).run(suite)
+            return get_test_runner(nocolor)(verbosity=self.verbosity).run(suite)
         def suite_result(self, suite, result, **kwargs):
             return result
     

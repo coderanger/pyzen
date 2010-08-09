@@ -6,35 +6,35 @@ from setuptools.command.test import test
 from pkg_resources import *
 
 from pyzen.core import main
-from pyzen.runner import ColoredTextTestRunner
+from pyzen.runner import get_test_runner
 
 class ZenTestProgram(unittest.TestProgram):
     
     def runTests(self):
-        if self.testRunner is None:
-            self.testRunner = unittest.TextTestRunner
-
-        if isinstance(self.testRunner, (type, types.ClassType)):
-            try:
-                testRunner = self.testRunner(verbosity=self.verbosity)
-            except TypeError:
-                # didn't accept the verbosity argument
-                testRunner = self.testRunner()
-        else:
-            # it is assumed to be a TestRunner instance
-            testRunner = self.testRunner
+        testRunner = self.testRunner(verbosity=self.verbosity)
         self.result = testRunner.run(self.test)
 
-def run_tests(loader, args, path):
+def run_tests(loader, args, path, nocolor):
     sys.path[:] = path
     loader_ep = EntryPoint.parse("x="+loader)
     loader_class = loader_ep.load(require=False)
-    m = ZenTestProgram(None, None, [unittest.__file__]+args, testLoader=loader_class())
+    m = ZenTestProgram(None, None, [unittest.__file__]+args, testLoader=loader_class(), testRunner=get_test_runner(nocolor))
     return m.result
 
 class zen(test):
     """Command to run test suite under PyZen."""
     description = 'run unit tests under PyZen'
-
+    
+    user_options = test.user_options + [
+        ('ui=', 'u', 'Force the use of the given PyZen UI'),
+        ('nocolor', 'c', 'Disable colored output'),
+    ]
+    boolean_options = ['nocolor']
+    
+    def initialize_options(self):
+        test.initialize_options(self)
+        self.ui = None
+        self.nocolor = False
+    
     def run_tests(self):
-        main(None, run_tests, self.test_loader, self.test_args, sys.path[:])
+        main(self.ui, run_tests, self.test_loader, self.test_args, sys.path[:], self.nocolor)

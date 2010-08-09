@@ -71,3 +71,9 @@ class ColoredTextTestRunner(unittest.TextTestRunner):
         else:
             self.stream.writeln(COLOR_SUCCESS+"OK"+COLOR_RESET)
         return result
+
+def get_test_runner(nocolor):
+    if nocolor:
+        return unittest.TextTestRunner
+    else:
+        return ColoredTextTestRunner
