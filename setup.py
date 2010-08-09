@@ -30,7 +30,7 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
     ],
-    zip_safe=False,
+    zip_safe = False,
     entry_points = {
         'distutils.commands': [
             'zen = pyzen.distutils:zen',
