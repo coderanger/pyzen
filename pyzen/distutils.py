@@ -1,16 +1,8 @@
-from setuptools import Command
+from setuptools.command.test import test
 
-class zen(Command):
-    """setuptools Command"""
-    description = "run my command"
-    user_options = []
-    def initialize_options(self):
-        """init options"""
-        pass
-
-    def finalize_options(self):
-        """finalize options"""
-        pass
+class zen(test):
+    """Command to run test suite under PyZen."""
+    description = 'run unit tests under PyZen'
 
     def run(self):
         """runner"""
