@@ -31,4 +31,9 @@ setup(
         'Programming Language :: Python',
     ],
     zip_safe=False,
+    entry_points = {
+        'distutils.commands': [
+            'zen = pyzen.distutils:zen',
+        ]
+    },
 )
