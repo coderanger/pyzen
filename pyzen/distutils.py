@@ -6,12 +6,13 @@ from setuptools.command.test import test
 from pkg_resources import *
 
 from pyzen.core import main
+from pyzen.runner import ColoredTextTestRunner
 
 class ZenTestProgram(unittest.TestProgram):
     
     def runTests(self):
         if self.testRunner is None:
-            self.testRunner = TextTestRunner
+            self.testRunner = unittest.TextTestRunner
 
         if isinstance(self.testRunner, (type, types.ClassType)):
             try:
