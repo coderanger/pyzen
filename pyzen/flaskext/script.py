@@ -7,6 +7,7 @@ import fnmatch
 from flaskext.script import Command, Option
 
 from pyzen.core import main
+from pyzen.runner import ColoredTextTestRunner
 
 try:
     from unittest2 import TestLoader
@@ -26,17 +27,21 @@ class ZenTestLoader(TestLoader):
                 return True
         return False
 
-def run_tests(app, pattern, start_dir, verbosity):
+def run_tests(app, pattern, start_dir, verbosity, nocolor):
     print start_dir
     loader = ZenTestLoader()
     suite = loader.discover(start_dir, pattern, start_dir)
-    result = unittest.TextTestRunner(verbosity=verbosity).run(suite)
+    if nocolor:
+        runner = unittest.TextTestRunner
+    else:
+        runner = ColoredTextTestRunner
+    result = runner(verbosity=verbosity).run(suite)
     return result
 
 class Test(Command):
     """Run app tests."""
     
-    def __init__(self, pattern='*/tests/*.py;*/tests.py', start_dir=None, verbosity=0):
+    def __init__(self, pattern='*/tests/*.py;*/tests.py', start_dir=None, verbosity=1):
         if start_dir is None:
             # Find the file that called this constructor and use its directory
             for f in inspect.stack():
@@ -54,10 +59,11 @@ class Test(Command):
             Option('-p', '--pattern', dest='pattern', default=self.default_pattern),
             Option('-s', '--start_dir', dest='start_dir', default=self.default_start_dir),
             Option('-v', '--verbosity', dest='verbosity', default=self.default_verbosity),
+            Option('--nocolor', action='store_true', default=False, help='Disable colored output'),
         ]
     
-    def run(self, app, pattern, start_dir, verbosity):
-        result = run_tests(app, pattern, start_dir, verbosity)
+    def run(self, app, pattern, start_dir, verbosity, nocolor):
+        result = run_tests(app, pattern, start_dir, verbosity, nocolor)
         if result.failures or result.errors:
             sys.exit(1)
 
@@ -70,8 +76,8 @@ class ZenTest(Test):
         options.append(Option('-u', '--ui', help='Force the use of the given PyZen UI'))
         return options
     
-    def run(self, app, pattern, start_dir, verbosity, ui):
+    def run(self, app, pattern, start_dir, verbosity, ui, nocolor):
         try:
-            main(ui, run_tests, app, pattern, start_dir, verbosity)
+            main(ui, run_tests, app, pattern, start_dir, verbosity, nocolor)
         except KeyboardInterrupt:
             pass
