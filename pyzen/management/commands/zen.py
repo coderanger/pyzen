@@ -1,3 +1,4 @@
+import unittest
 from optparse import make_option
 
 from django.conf import settings
@@ -11,21 +12,19 @@ except ImportError:
     patch_for_test_db_setup = lambda: None
     
 from pyzen.core import main
-
-class ZenTestRunner(DjangoTestRunner):
-    def run(self, *args, **kwargs):
-        return super(DjangoTestRunner, self).run(*args, **kwargs)
+from pyzen.runner import get_test_runner
 
 def run_tests(*test_labels, **options):
     patch_for_test_db_setup()
     verbosity = int(options.get('verbosity', 1))
     interactive = options.get('interactive', True)
     failfast = options.get('failfast', False)
+    nocolor = options.get('nocolor', False)
     TestSuiteRunner = get_runner(settings)
     
     class NewTestSuiteRunner(TestSuiteRunner):
         def run_suite(self, suite, **kwargs):
-            return ZenTestRunner(verbosity=self.verbosity, failfast=self.failfast).run(suite)
+            return get_test_runner(nocolor)(verbosity=self.verbosity).run(suite)
         def suite_result(self, suite, result, **kwargs):
             return result
     
@@ -37,6 +36,7 @@ class Command(BaseCommand):
     
     option_list = BaseCommand.option_list + (
         make_option('-u', '--ui', help='Force the use of the given PyZen UI'),
+        make_option('--nocolor', action='store_true', default=False, help='Disable colored output.')
     )
     
     def handle(self, *test_labels, **options):

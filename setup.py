@@ -8,16 +8,14 @@ setup(
     name = 'PyZen',
     version = '0.1',
     packages = find_packages(),
-
     author = 'Noah Kantrowitz',
     author_email = 'noah@coderanger.net',
     description = 'Continuous testing for paranoid developers.',
     long_description = open(os.path.join(os.path.dirname(__file__), 'README')).read(),
     license = 'BSD',
-    keywords = 'test unittest continuous django flask',
+    keywords = 'test unittest continuous django',
     url = 'http://github.com/coderanger/pyzen',
     classifiers = [
-        'Framework :: Django',
         #'Development Status :: 1 - Planning',
         #'Development Status :: 2 - Pre-Alpha',
         'Development Status :: 3 - Alpha',
@@ -32,6 +30,13 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
     ],
-    zip_safe=False
-    
+    zip_safe = False,
+    entry_points = {
+        'distutils.commands': [
+            'zen = pyzen.distutils:zen',
+        ],
+        'console_scripts': [
+            'pyzen = pyzen.simple:main',
+        ],
+    },
 )
