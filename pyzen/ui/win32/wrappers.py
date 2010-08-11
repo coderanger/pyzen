@@ -30,7 +30,8 @@ def systray_modify(name, title, msg, hwnd):
     nid = NOTIFYICONDATA()
     nid.cbSize = sizeof(NOTIFYICONDATA)
     nid.uID = 1
-    nid.uFlags = NIF_ICON | NIF_INFO | NIF_TIP | NIF_SHOWTIP
+    nid.uFlags = NIF_ICON | NIF_INFO | NIF_TIP
+    nid.dwInfoFlags = NIIF_USER
     nid.hIcon = load_icon(name)
     tip = 'PyZen: '+title
     memmove(addressof(nid)+NOTIFYICONDATA.szTip.offset, tip, min(255, len(tip)))
