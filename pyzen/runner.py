@@ -30,7 +30,9 @@ class ColoredTextTestResult(unittest._TextTestResult):
     def printErrorList(self, flavour, errors):
             for test, err in errors:
                 self.stream.writeln(self.separator1)
-                self.stream.writeln("%s%s: %s%s" % (COLOR_FAIL,flavour,self.getDescription(test),COLOR_RESET))
+                self.stream.write(COLOR_FAIL)
+                self.stream.writeln("%s: %s" % (flavour,self.getDescription(test)))
+                self.stream.write(COLOR_RESET)
                 self.stream.writeln(self.separator2)
                 self.stream.writeln("%s" % err)
 
@@ -67,9 +69,11 @@ class ColoredTextTestRunner(unittest.TextTestRunner):
             if errored:
                 if failed: self.stream.write(", ")
                 self.stream.write("errors=%d" % errored)
-            self.stream.writeln(")"+COLOR_RESET)
+            self.stream.writeln(")")
         else:
-            self.stream.writeln(COLOR_SUCCESS+"OK"+COLOR_RESET)
+            self.stream.write(COLOR_SUCCESS)
+            self.stream.writeln("OK")
+        self.stream.write(COLOR_RESET)
         return result
 
 def get_test_runner(nocolor):
