@@ -1,19 +1,21 @@
-=====
 PyZen
 =====
 
-PyZen is a work-a-like to Ruby's ZenTest framework. It will run in the
-background and re-run your test suite when a change is detected.
+PyZen is a continuous test runner for paranoid developers. As long as the
+script is running, it will monitor for changes in your code and re-run your
+test suite when needed. There are frontends for multiple frameworks as well
+as several notification UIs.
 
-Django
-======
+For further documentation see http://packages.python.org/PyZen
 
-Configuration
--------------
-Just add ``pyzen`` to your ``INSTALLED_APPS``.
+Installation
+------------
 
-Usage
------
-PyZen adds a new manage.py command ``zen``. To close the tester use
-ctrl+c.
-
+PyZen can be installed from PyPI using easy_install::
+    
+    $ easy_install PyZen
+    
+or pip::
+    
+    $ pip install PyZen
+    
