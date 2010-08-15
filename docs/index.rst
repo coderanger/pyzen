@@ -21,18 +21,46 @@ or pip::
 Frontends
 ---------
 
-To use PyZen you need a frontend for your environment. The Django, Flask, and
-distutils frontends provide hooks into their respective frameworks, while the
-standalone frontend provides a wrapper environment to run an arbitrary script
-in.
+PyZen provides multiple frontends to collect and run the continuous tester.
 
-.. toctree::
-    :maxdepth: 1
-    
-    frontends/django
-    frontends/flask
-    frontends/distutils
-    frontends/standalone
+Django
+~~~~~~
+
+To setup PyZen under Django add ``pyzen`` to your ``INSTALLED_APPS`` setting.
+The run ``manage.py zen`` to start the tester process. You can give an
+application label or test name using the same format as the built-in ``test``
+command.
+
+Flask
+~~~~~
+
+The Flask frontend is maintained as separate package, `Flask-Zen`_.
+
+.. _Flask-Zen: http://pypi.python.org/pypi/Flask-Zen
+
+Distutils
+~~~~~~~~~
+
+The PyZen package provides a distutils command ``zen`` that will run the test
+suite configured in setup.py under PyZen. Run ``setup.py zen`` to start the
+tester process.
+
+Standalone
+~~~~~~~~~~
+
+The ``pyzen`` script provides a wrapper to run any test script under PyZen.
+Run ``pyzen yourscript.py arg1 arg2 ...`` to start the tester process. No
+configuration options are available at this time.
+
+Options
+~~~~~~~
+
+``--nocolor`` : *flag, default: False*
+    Disable colored output.
+
+``-u``, ``--ui`` : *default: autodetect*
+    Force the use of a specific UI module. Available options are ``win32``,
+    ``osx``, ``linux``, and ``none``.
 
 UIs
 ---
