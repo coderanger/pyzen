@@ -6,6 +6,13 @@ script is running, it will monitor for changes in your code and re-run your
 test suite when needed. There are frontends for multiple frameworks as well
 as several notification UIs.
 
+Features
+--------
+
+* Monitor source code and run tests on change
+* OS-specific async notification UI
+* Colored test output
+
 Installation
 ------------
 
@@ -21,7 +28,8 @@ or pip::
 Frontends
 ---------
 
-PyZen provides multiple frontends to collect and run the continuous tester.
+PyZen provides multiple frontends to collect tests and run the continuous
+tester.
 
 Django
 ~~~~~~
