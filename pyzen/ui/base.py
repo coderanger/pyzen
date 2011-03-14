@@ -57,11 +57,13 @@ class PyZenUI(object):
 
 def load_ui(override):
     if override:
+        if isinstance(override, basestring):
+            override = set(override.split(','))
         for ui in PyZenUIMeta.uis:
-            if ui.name == override:
-                return ui()
+            if ui.name in override:
+                yield ui()
     else:
         for ui in PyZenUIMeta.uis:
             if ui.enabled():
-                return ui()
+                yield ui()
     

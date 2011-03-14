@@ -74,7 +74,7 @@ def reloader(q, func, args, kwargs):
 
 def main(ui_override, func, *args, **kwargs):
     p = None
-    ui = load_ui(ui_override)
+    uis = list(load_ui(ui_override))
     try:
         while True:
             q = Queue()
@@ -84,7 +84,7 @@ def main(ui_override, func, *args, **kwargs):
             while True:
                 try:
                     cmd = q.get(True, _SLEEP_TIME)
-                    if ui is not None:
+                    for ui in uis:
                         ui.handle(**cmd)
                 except Empty:
                     # Timed out, check if we need to restart
@@ -94,7 +94,7 @@ def main(ui_override, func, *args, **kwargs):
                         else:
                             return p.exitcode # Any other return code should be considered real
     finally:
-        if ui is not None:
+        for ui in uis:
             ui.shutdown()
         if p is not None:
             p.terminate()
