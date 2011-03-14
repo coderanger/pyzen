@@ -13,6 +13,8 @@ class SublimeUI(PyZenUI):
     def _read_pidfile(cls):
         if sys.platform == 'darwin':
             base_path = os.path.join(os.environ['HOME'], 'Library', 'Application Support', 'Sublime Text 2')
+        else:
+            return None
         pid_path = os.path.join(base_path, 'sublime2.pid')
         if not os.path.exists(pid_path):
             return None
