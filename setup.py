@@ -8,6 +8,7 @@ setup(
     name = 'PyZen',
     version = '0.2',
     packages = find_packages(),
+    package_data = {'pyzen.ui': ['img/*']},
     author = 'Noah Kantrowitz',
     author_email = 'noah@coderanger.net',
     description = 'Continuous testing for paranoid developers.',
