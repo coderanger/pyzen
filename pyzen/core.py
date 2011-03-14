@@ -3,74 +3,109 @@ import os
 import time
 import traceback
 from multiprocessing import Process, Queue
-from threading import Thread
+from threading import Thread, Lock
 from Queue import Empty
 
 from pyzen.ui import load_ui
 
 _SLEEP_TIME = 1
 
-def _reloader_thread():
-    """When this function is run from the main thread, it will force other
-    threads to exit when any modules currently loaded change.
-    
-    @param modification_callback: a function taking a single argument, the
-        modified file, which is called every time a modification is detected
+MAGIC_RETURN_CODE = 254
+
+class ReloaderThread(Thread):
+    def __init__(self):
+        super(ReloaderThread, self).__init__()
+        self.daemon = False
+        self._quit = False
+        self._quit_lock = Lock()
+        self.do_reload = False
+
+    def run(self):
+        """When this is run, it will force other
+        threads to exit when any modules currently loaded change.
+        """
+        mtimes = {}
+        while True:
+            with self._quit_lock:
+                if self._quit:
+                    return
+
+            for filename in filter(None, [getattr(module, '__file__', None)
+                                          for module in sys.modules.values()]):
+                while not os.path.isfile(filename): # Probably in an egg or zip file
+                    filename = os.path.dirname(filename)
+                    if not filename:
+                        break
+                if not filename: # Couldn't map to physical file, so just ignore
+                    continue
+
+                if filename.endswith('.pyc') or filename.endswith('.pyo'):
+                    filename = filename[:-1]
+
+                if not os.path.isfile(filename):
+                    # Compiled file for non-existant source
+                    continue
+
+                mtime = os.stat(filename).st_mtime
+                if filename not in mtimes:
+                    mtimes[filename] = mtime
+                    continue
+                if mtime > mtimes[filename]:
+                    print >> sys.stderr, 'Detected modification of %s, restarting.' % filename
+                    self.do_reload = True
+                    sys.exit(MAGIC_RETURN_CODE)
+            time.sleep(_SLEEP_TIME)
+
+    def quit(self):
+        with self._quit_lock():
+            self._quit = True
+
+
+class RunnerThread(Thread):
+    """A thread to run the provided function and push the test results
+    back to a Queue.
     """
-    mtimes = {}
-    while True:
-        for filename in filter(None, [getattr(module, '__file__', None)
-                                      for module in sys.modules.values()]):
-            while not os.path.isfile(filename): # Probably in an egg or zip file
-                filename = os.path.dirname(filename)
-                if not filename:
-                    break
-            if not filename: # Couldn't map to physical file, so just ignore
-                continue
 
-            if filename.endswith('.pyc') or filename.endswith('.pyo'):
-                filename = filename[:-1]
+    def __init__(self, q, func, args, kwargs):
+        super(RunnerThread, self).__init__()
+        self.q = q
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
 
-            if not os.path.isfile(filename):
-                # Compiled file for non-existant source
-                continue
+    def run(self):
+        try:
+            start_time = time.clock()
+            result = self.func(*self.args, **self.kwargs)
+            end_time = time.clock()
+            self.q.put({
+                'failures': len(result.failures),
+                'errors': len(result.errors),
+                'total': result.testsRun,
+                'time': end_time - start_time,
+            })
+        except Exception:
+            traceback.print_exc()
+            self.q.put({
+                'failures': -1,
+                'errors': -1,
+                'total': -1,
+                'time': 0,
+            })
 
-            mtime = os.stat(filename).st_mtime
-            if filename not in mtimes:
-                mtimes[filename] = mtime
-                continue
-            if mtime > mtimes[filename]:
-                print >> sys.stderr, 'Detected modification of %s, restarting.' % filename
-                sys.exit(3)
-        time.sleep(_SLEEP_TIME)
-
-def _runner_thread(q, func, args, kwargs):
-    try:
-        start_time = time.clock()
-        result = func(*args, **kwargs)
-        end_time = time.clock()
-        q.put({
-            'failures': len(result.failures),
-            'errors': len(result.errors),
-            'total': result.testsRun,
-            'time': end_time - start_time,
-        })
-    except Exception:
-        traceback.print_exc()
-        q.put({
-            'failures': -1,
-            'errors': -1,
-            'total': -1,
-            'time': 0,
-        })
 
 def reloader(q, func, args, kwargs):
-    t = Thread(target=_runner_thread, args=(q, func, args, kwargs))
+    t = ReloaderThread()
     t.start()
     try:
-        _reloader_thread()
+        RunnerThread(q, func, args, kwargs).run()
     except KeyboardInterrupt:
-        pass
+        t.quit()
+    finally:
+        t.join()
+        if t.do_reload:
+            sys.exit(MAGIC_RETURN_CODE)
+
 
 def main(ui_override, func, *args, **kwargs):
     p = None
@@ -89,7 +124,7 @@ def main(ui_override, func, *args, **kwargs):
                 except Empty:
                     # Timed out, check if we need to restart
                     if not p.is_alive():
-                        if p.exitcode == 3:
+                        if p.exitcode == MAGIC_RETURN_CODE:
                             break # This means we need to restart it
                         else:
                             return p.exitcode # Any other return code should be considered real
@@ -98,5 +133,3 @@ def main(ui_override, func, *args, **kwargs):
             ui.shutdown()
         if p is not None:
             p.terminate()
-
-
