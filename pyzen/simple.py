@@ -13,7 +13,10 @@ def run_tests(argv):
     result.total = -1
     
     # Munge sys.path and sys.argv
-    path = argv[0]
+    if len(argv) > 0:
+        path = argv[0]
+    else:
+        path = "."
     base = os.path.abspath(os.path.dirname(path))
     sys.path.insert(0, base)
     sys.argv[:] = argv
