@@ -3,7 +3,7 @@ from optparse import make_option
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.test.simple import DjangoTestRunner
+from django.test.simple import DjangoTestSuiteRunner
 from django.test.utils import get_runner
 
 try:
@@ -22,13 +22,13 @@ def run_tests(*test_labels, **options):
     nocolor = options.get('nocolor', False)
     TestSuiteRunner = get_runner(settings)
     
-    class NewTestSuiteRunner(TestSuiteRunner):
+    class NewTestSuiteRunner(DjangoTestSuiteRunner):
         def run_suite(self, suite, **kwargs):
             return get_test_runner(nocolor)(verbosity=self.verbosity).run(suite)
         def suite_result(self, suite, result, **kwargs):
             return result
     
-    test_runner = NewTestSuiteRunner(verbosity=verbosity, interactive=interactive, failfast=failfast)
+    test_runner = NewTestSuiteRunner(verbosity=verbosity, failfast=failfast)
     result = test_runner.run_tests(test_labels)
     return result
 
