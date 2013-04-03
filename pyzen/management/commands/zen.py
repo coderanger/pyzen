@@ -3,7 +3,6 @@ from optparse import make_option
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.test.simple import DjangoTestRunner
 from django.test.utils import get_runner
 
 try:
