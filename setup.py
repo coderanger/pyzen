@@ -12,7 +12,7 @@ setup(
     author = 'Noah Kantrowitz',
     author_email = 'noah@coderanger.net',
     description = 'Continuous testing for paranoid developers.',
-    long_description = open(os.path.join(os.path.dirname(__file__), 'README')).read(),
+    long_description = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
     license = 'BSD',
     keywords = 'test unittest continuous django',
     url = 'http://github.com/coderanger/pyzen',
