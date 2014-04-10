@@ -26,7 +26,7 @@ def main():
     time.sleep(2)
     t.post_message(WM_APP, 1, 2)
     time.sleep(1)
-    print 'Sending quit'
+    print('Sending quit')
     t.quit()
     
 if __name__ == '__main__':

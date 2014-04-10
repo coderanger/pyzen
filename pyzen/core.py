@@ -5,7 +5,7 @@ import time
 import traceback
 from multiprocessing import Process, Queue
 from threading import Thread, Lock
-from Queue import Empty
+from queue import Empty
 
 from pyzen.ui import load_ui
 
@@ -52,7 +52,7 @@ class ReloaderThread(Thread):
                     mtimes[filename] = mtime
                     continue
                 if mtime > mtimes[filename]:
-                    print >> sys.stderr, 'Detected modification of %s, restarting.' % filename
+                    print('Detected modification of %s, restarting.' % filename, file=sys.stderr)
                     self.do_reload = True
                     sys.exit(MAGIC_RETURN_CODE)
             time.sleep(_SLEEP_TIME)
