@@ -1,11 +1,18 @@
 from __future__ import with_statement
+from __future__ import print_function
 import sys
 import os
 import time
 import traceback
 from multiprocessing import Process, Queue
 from threading import Thread, Lock
-from queue import Empty
+try:
+    #Python3
+    from queue import Empty
+except ImportError:
+    #Python2
+    from Queue import Empty
+    
 
 from pyzen.ui import load_ui
 

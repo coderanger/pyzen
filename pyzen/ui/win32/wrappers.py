@@ -1,3 +1,4 @@
+from __future__ import print_function
 import threading
 
 from pyzen.ui.win32.types import *

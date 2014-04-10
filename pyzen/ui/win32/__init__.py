@@ -1,3 +1,4 @@
+from __future__ import print_function
 from pyzen.ui.base import PyZenUI
 
 class Win32UI(PyZenUI):
