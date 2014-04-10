@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import os
 import copy
@@ -28,8 +29,8 @@ def run_tests(argv):
     # Run the code
     fail = False
     try:
-        exec compiled in mod.__dict__
-    except SystemExit, e:
+        exec(compiled, mod.__dict__)
+    except SystemExit as e:
         if e.code:
             fail = True
     

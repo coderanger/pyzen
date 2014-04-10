@@ -1,3 +1,4 @@
+from __future__ import print_function
 import threading
 
 from pyzen.ui.win32.types import *
@@ -67,7 +68,7 @@ def message_loop(hwnd, wndproc):
             else:
                 DispatchMessage(byref(msg))
         except WindowsError:
-            print 'Error processing msg(%s, %s, %s)'%(msg.message, msg.wParam, msg.lParam)
+            print('Error processing msg(%s, %s, %s)'%(msg.message, msg.wParam, msg.lParam))
             continue
 
 class NotifyData(Structure):
